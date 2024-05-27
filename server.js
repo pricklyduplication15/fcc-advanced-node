@@ -47,7 +47,7 @@ async function run() {
 
     app.route("/").get((req, res) => {
       res.render("index", {
-        title: "Connected to Database",
+        title: "Hello",
         message: "Please login",
       });
     });
