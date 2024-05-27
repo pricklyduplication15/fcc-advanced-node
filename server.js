@@ -69,9 +69,7 @@ async function run() {
     });
 
     passport.deserializeUser((id, done) => {
-      //myDataBase.findOne({ _id: new ObjectId(id) }, (err, doc) => {
       done(null, doc);
-      //});
     });
   } catch (e) {
     console.error(e);
