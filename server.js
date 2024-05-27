@@ -3,7 +3,8 @@ require("dotenv").config({ path: "sample.env" }); // Load environment variables 
 const express = require("express");
 const myDB = require("./connection");
 const fccTesting = require("./freeCodeCamp/fcctesting.js");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const { ObjectId } = require("mongodb");
 
 const URI = process.env.MONGO_URI;
 
