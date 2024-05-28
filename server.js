@@ -7,9 +7,17 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const URI = process.env.MONGO_URI;
 const routes = require("./routes.js");
 const auth = require("./auth.js");
+const session = require("express-session");
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const passport = require("passport");
 
 if (!URI) {
   console.error("Missing MONGO_URI in environment variables");
+  process.exit(1);
+}
+
+if (!SESSION_SECRET) {
+  console.error("Missing SESSION_SECRET in environment variables");
   process.exit(1);
 }
 
@@ -30,6 +38,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "pug");
 app.set("views", "./views/pug");
+
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: true,
+    saveUninitialized: true,
+    cookie: { secure: process.env.NODE_ENV === "production" },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 async function run() {
   try {
