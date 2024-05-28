@@ -8,9 +8,15 @@ const { ObjectId } = require("mongodb");
 const LocalStrategy = require("passport-local");
 
 const URI = process.env.MONGO_URI;
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
 if (!URI) {
   console.error("Missing MONGO_URI in environment variables");
+  process.exit(1);
+}
+
+if (!SESSION_SECRET) {
+  console.error("Missing SESSION_SECRET in environment variables");
   process.exit(1);
 }
 
@@ -51,12 +57,13 @@ async function run() {
       res.render("index", {
         title: "Connected to Database",
         message: "Please log in",
+        showLogin: true,
       });
     });
 
     app.use(
       session({
-        secret: process.env.SESSION_SECRET,
+        secret: SESSION_SECRET,
         resave: true,
         saveUninitialized: true,
         cookie: { secure: false },
@@ -87,6 +94,17 @@ async function run() {
         });
       })
     );
+    app.post("/login", (req, res) => {
+      passport.authenticate({ failureRedirect: "/" });
+      if (passport.authenticate("local") === true) {
+        res.redirect("/profile");
+      }
+    });
+    app.route("/profile").get((req, res) => {
+      res.render("profile", {
+        user: req.user,
+      });
+    });
   } catch (e) {
     console.error(e);
   }
