@@ -72,17 +72,18 @@ async function run() {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    app
-      .route("/login")
-      .post(
-        passport.authenticate("local", { failureRedirect: "/" }),
-        (req, res) => {
-          res.redirect("/profile");
-        }
-      );
+    app.post(
+      "/login",
+      passport.authenticate("local", {
+        failureRedirect: "/",
+        successRedirect: "/profile",
+      })
+    );
 
-    app.route("/profile").get((req, res) => {
-      res.render("profile");
+    app.route("/profile").get(ensureAuthenticated, (req, res) => {
+      res.render("profile", {
+        username: req.user.username,
+      });
     });
 
     passport.use(
@@ -108,6 +109,13 @@ async function run() {
   } catch (e) {
     console.error(e);
   }
+}
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/");
 }
 
 run().catch(console.dir);
