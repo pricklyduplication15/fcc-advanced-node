@@ -72,14 +72,17 @@ async function run() {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    passport.serializeUser((user, done) => {
-      done(null, user._id);
-    });
+    app
+      .route("/login")
+      .post(
+        passport.authenticate("local", { failureRedirect: "/" }),
+        (req, res) => {
+          res.redirect("/profile");
+        }
+      );
 
-    passport.deserializeUser((id, done) => {
-      myDataBase.findOne({ _id: new ObjectId(id) }, (err, doc) => {
-        done(null, doc);
-      });
+    app.route("/profile").get((req, res) => {
+      res.render("profile");
     });
 
     passport.use(
@@ -93,25 +96,13 @@ async function run() {
         });
       })
     );
+    passport.serializeUser((user, done) => {
+      done(null, user._id);
+    });
 
-    app.post(
-      "/login",
-      passport.authenticate("local", {
-        failureRedirect: "/",
-        successRedirect: "/profile",
-      })
-    );
-
-    function ensureAuthenticated(req, res, next) {
-      if (req.isAuthenticated()) {
-        return next();
-      }
-      res.redirect("/");
-    }
-
-    app.route("/profile").get(ensureAuthenticated, (req, res) => {
-      res.render("profile", {
-        username: req.user.username,
+    passport.deserializeUser((id, done) => {
+      myDataBase.findOne({ _id: new ObjectId(id) }, (err, doc) => {
+        done(null, doc);
       });
     });
   } catch (e) {
