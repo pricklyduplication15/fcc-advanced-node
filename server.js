@@ -10,6 +10,10 @@ const auth = require("./auth.js");
 const session = require("express-session");
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const passport = require("passport");
+const app = express();
+
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
 if (!URI) {
   console.error("Missing MONGO_URI in environment variables");
@@ -29,8 +33,6 @@ const client = new MongoClient(URI, {
     deprecationErrors: true,
   },
 });
-
-const app = express();
 
 fccTesting(app); // For FCC testing purposes
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -62,6 +64,10 @@ async function run() {
 
     auth(app, myDataBase);
     routes(app, myDataBase);
+
+    io.on("connection", (socket) => {
+      console.log("A user has connected");
+    });
   } catch (e) {
     console.error(e);
     app.use((req, res, next) => {
