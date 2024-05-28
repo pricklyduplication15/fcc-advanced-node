@@ -3,9 +3,10 @@ require("dotenv").config({ path: "sample.env" }); // Load environment variables 
 const express = require("express");
 const myDB = require("./connection");
 const fccTesting = require("./freeCodeCamp/fcctesting.js");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const { ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const LocalStrategy = require("passport-local");
+const session = require("express-session");
+const passport = require("passport");
 
 const URI = process.env.MONGO_URI;
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -30,8 +31,6 @@ const client = new MongoClient(URI, {
 });
 
 const app = express();
-const session = require("express-session");
-const passport = require("passport");
 
 fccTesting(app); // For FCC testing purposes
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -94,15 +93,25 @@ async function run() {
         });
       })
     );
-    app.post("/login", (req, res) => {
-      passport.authenticate({ failureRedirect: "/" });
-      if (passport.authenticate("local") === true) {
-        res.redirect("/profile");
+
+    app.post(
+      "/login",
+      passport.authenticate("local", {
+        failureRedirect: "/",
+        successRedirect: "/profile",
+      })
+    );
+
+    function ensureAuthenticated(req, res, next) {
+      if (req.isAuthenticated()) {
+        return next();
       }
-    });
-    app.route("/profile").get((req, res) => {
+      res.redirect("/");
+    }
+
+    app.route("/profile").get(ensureAuthenticated, (req, res) => {
       res.render("profile", {
-        user: req.user,
+        username: req.user.username,
       });
     });
   } catch (e) {
