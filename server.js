@@ -53,6 +53,17 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+io.use(
+  passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key: "express.sid",
+    secret: process.env.SESSION_SECRET,
+    store: store,
+    success: onAuthorizeSuccess,
+    fail: onAuthorizeFail,
+  })
+);
+
 async function run() {
   try {
     await client.connect();
@@ -84,7 +95,17 @@ async function run() {
     });
   }
 }
+function onAuthorizeSuccess(data, accept) {
+  console.log("successful connection to socket.io");
 
+  accept(null, true);
+}
+
+function onAuthorizeFail(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log("failed connection to socket.io:", message);
+  accept(null, false);
+}
 run().catch(console.dir);
 
 const PORT = process.env.PORT || 3000;
