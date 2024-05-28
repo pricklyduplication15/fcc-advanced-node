@@ -8,7 +8,6 @@ const LocalStrategy = require("passport-local");
 const session = require("express-session");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const hash = bcrypt.hashSync(req.body.password, 12);
 const URI = process.env.MONGO_URI;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
@@ -116,6 +115,7 @@ async function run() {
 
     app.route("/register").post(
       (req, res, next) => {
+        const hash = bcrypt.hashSync(req.body.password, 12);
         myDataBase.findOne({ username: req.body.username }, (err, user) => {
           if (err) {
             next(err);
