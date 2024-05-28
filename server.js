@@ -86,6 +86,11 @@ async function run() {
       });
     });
 
+    app.route("/logout").get((req, res) => {
+      req.logout();
+      res.redirect("/");
+    });
+
     passport.use(
       new LocalStrategy((username, password, done) => {
         myDataBase.findOne({ username: username }, (err, user) => {
@@ -105,6 +110,10 @@ async function run() {
       myDataBase.findOne({ _id: new ObjectId(id) }, (err, doc) => {
         done(null, doc);
       });
+    });
+
+    app.use((req, res, next) => {
+      res.status(404).type("text").send("Not Found");
     });
   } catch (e) {
     console.error(e);
