@@ -5,6 +5,7 @@ const myDB = require("./connection");
 const fccTesting = require("./freeCodeCamp/fcctesting.js");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const { ObjectId } = require("mongodb");
+const LocalStrategy = require("passport-local");
 
 const URI = process.env.MONGO_URI;
 
@@ -74,6 +75,18 @@ async function run() {
         done(null, doc);
       });
     });
+
+    passport.use(
+      new LocalStrategy((username, password, done) => {
+        myDataBase.findOne({ username: username }, (err, user) => {
+          console.log(`User ${username} attempted to log in.`);
+          if (err) return done(err);
+          if (!user) return done(null, false);
+          if (password !== user.password) return done(null, false);
+          return done(null, user);
+        });
+      })
+    );
   } catch (e) {
     console.error(e);
   }
